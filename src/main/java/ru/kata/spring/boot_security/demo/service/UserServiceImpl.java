@@ -1,11 +1,13 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.dao.UserDao;
@@ -21,9 +23,11 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserDao userDao;
-
-    public UserServiceImpl(UserDao userDao) {
+    private final PasswordEncoder passwordEncoder;
+@Autowired
+    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<User> getAllUsers() {
@@ -32,7 +36,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Transactional
     public void save(User user) {
-        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userDao.save(user);
     }
 
@@ -42,7 +46,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Transactional
     public void update(int id, User updateUser) {
-        updateUser.setPassword(new BCryptPasswordEncoder().encode(updateUser.getPassword()));
+        updateUser.setPassword(passwordEncoder.encode(updateUser.getPassword()));
         userDao.update(id, updateUser);
     }
 
@@ -61,8 +65,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException(String.format("User '%s' not found!", email));
         }
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-                mapRolesToAuthorities(user.getRoles()));
+        return user;
     }
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {

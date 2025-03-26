@@ -6,7 +6,7 @@ import ru.kata.spring.boot_security.demo.models.User;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Transactional
@@ -19,19 +19,20 @@ public class UserDaoImpl implements UserDao {
     public UserDaoImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
-
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return entityManager.createQuery("select u from User u", User.class).getResultList();
     }
-
     @Override
+    @Transactional(readOnly = true)
     public Object save(User user) {
         entityManager.persist(user);
         return null;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User show(int id) {
         TypedQuery<User> query = entityManager.createQuery(
                 "select u from User u where u.id = :id", User.class);
@@ -40,6 +41,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void update(int id, User updateUser) {
         String[] roleUser = new String[]{"ROLE_USER"};
 
@@ -57,11 +59,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void delete(int id) {
         User user = show(id);
         entityManager.remove(user);
     }
-
     public User findByUsername(String username) {
         return entityManager.createQuery("select u from User u where u.username = :username", User.class)
                 .setParameter("username", username).getSingleResult();

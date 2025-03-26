@@ -7,7 +7,7 @@ import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
 
 import java.security.Principal;
 
-@Controller
+@RestController
 public class UserController {
 
     private final UserServiceImpl userServiceImpl;
