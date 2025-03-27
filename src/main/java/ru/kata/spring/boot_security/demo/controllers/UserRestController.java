@@ -1,18 +1,16 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
-
 import javax.validation.Valid;
-import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
+@PreAuthorize("hasRole('ADMIN')")
 public class UserRestController {
     private final UserServiceImpl userServiceImpl;
 
@@ -20,43 +18,31 @@ public class UserRestController {
         this.userServiceImpl = userServiceImpl;
     }
 
-    @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public List<User> getAllUsers() {
-        List<User> allUsers = userServiceImpl.getAllUsers();
-        return allUsers;
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userServiceImpl.getAllUsers());
     }
 
-    @GetMapping("/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public User getUser(@PathVariable int id) {
-        User user = userServiceImpl.show(id);
-        return user;
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable int id) {
+        return ResponseEntity.ok(userServiceImpl.show(id));
     }
 
-    @PostMapping("users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public User addNewUser(@RequestBody @Valid User user) {
+    @PostMapping
+    public ResponseEntity<User> addNewUser(@RequestBody @Valid User user) {
         userServiceImpl.save(user);
-        return user;
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateUser(@RequestBody User user) {
+    public ResponseEntity<User> updateUser(@RequestBody @Valid User user) {
         userServiceImpl.update(user.getId(), user);
         return ResponseEntity.ok(user);
     }
 
-    @DeleteMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@RequestBody User user) {
-        userServiceImpl.delete(user.getId());
-        return ResponseEntity.ok(user);
-    }
-
-    @GetMapping("/current")
-    public ResponseEntity<User> getUserPage(Principal pr) {
-        return new ResponseEntity(userServiceImpl.findByUsername(pr.getName()), HttpStatus.OK);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable int id) {
+        userServiceImpl.delete(id);
+        return ResponseEntity.ok().build();
     }
 }

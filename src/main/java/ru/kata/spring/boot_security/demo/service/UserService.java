@@ -11,6 +11,7 @@ public interface UserService {
     void save(User user);
 
     User show(int id);
+    User findByUsername(String username);
 
     void update(int id, User updateUser);
 
