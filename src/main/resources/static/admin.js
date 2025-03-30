@@ -1,4 +1,4 @@
-let editModal77 = new bootstrap.Modal(document.getElementById('modalEdit'));
+ editModal77 = new bootstrap.Modal(document.getElementById('modalEdit'));
 let deleteModal77 = new bootstrap.Modal(document.getElementById('deleteModal'));
 
 const url = 'http://localhost:8080/api/users/';

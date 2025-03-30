@@ -6,11 +6,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "auth")
+@Table(name = "users")
 public class User implements UserDetails {
 
     @Id
@@ -123,7 +124,7 @@ public class User implements UserDetails {
         this.passwordConfirm = passwordConfirm;
     }
 
-    public Set <Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 

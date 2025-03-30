@@ -1,25 +1,33 @@
 package ru.kata.spring.boot_security.demo.configs;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.kata.spring.boot_security.demo.dao.RoleRepository;
-import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final SuccessUserHandler successUserHandler;
+
+    private UserServiceImpl userServiceImpl;
+
     @Autowired
+    public void setUserSecurityService(UserServiceImpl userServiceImpl) {
+        this.userServiceImpl = userServiceImpl;
+    }
+
     public WebSecurityConfig(SuccessUserHandler successUserHandler) {
         this.successUserHandler = successUserHandler;
     }
@@ -29,44 +37,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/auth/login").permitAll()
-                .antMatchers("/user").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/user").hasAnyRole("ADMIN", "USER")
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
-                .formLogin()
-                .loginPage("/auth/login")
-                .loginProcessingUrl("/login")  // POST-запрос отправляется сюда
-                .successHandler(successUserHandler)  // Должен работать корректно
+                .formLogin().loginPage("/auth/login").usernameParameter("email").passwordParameter("password")
+                .loginProcessingUrl("/login")
+                .successHandler(successUserHandler)
                 .failureUrl("/auth/login?error")
                 .permitAll()
                 .and()
                 .logout()
                 .permitAll();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService) {
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setPasswordEncoder(passwordEncoder());
-        authenticationProvider.setUserDetailsService(userDetailsService);
+        authenticationProvider.setUserDetailsService(userServiceImpl);
         return authenticationProvider;
-    }
-    @Bean
-    public CommandLineRunner initRoles(RoleRepository roleRepository) {
-        return args -> {
-            if (roleRepository.findByName("ROLE_ADMIN") == null) {
-                roleRepository.save(new Role(1L, "ROLE_ADMIN"));
-            }
-            if (roleRepository.findByName("ROLE_USER") == null) {
-                roleRepository.save(new Role(2L, "ROLE_USER"));
-            }
-        };
     }
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -21,14 +21,16 @@
     </p>
     <p>
       <label for="password" class="sr-only">Password</label>
-      <input type="password" id="password" name="password" class="form-control" placeholder="Password">
+      <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
     </p>
-    <input type="hidden" name="_csrf" th:value="8b0418dd-939f-4db0-8706-5f6c308fa11d"/>
+    <input name="_csrf" type="hidden" value="8b0418dd-939f-4db0-8706-5f6c308fa11d"/>
     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-    <div th:if="${param.error}" class="alert alert-danger mt-3">
+    <div th:if="${param.error}" style="color: #ff0000">
       Неверные имя или пароль
     </div>
   </form>
+
+
 </div>
 </body>
 </html>

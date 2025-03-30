@@ -2,55 +2,57 @@ package ru.kata.spring.boot_security.demo.dao;
 
 import org.springframework.stereotype.Repository;
 import ru.kata.spring.boot_security.demo.models.User;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.*;
+import javax.transaction.Transactional;
 import java.util.List;
+
 
 @Repository
 public class UserDaoImpl implements UserDao {
+
     @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     public UserDaoImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return entityManager.createQuery("select u from User u", User.class).getResultList();
     }
 
     @Override
     @Transactional
-    public void save(User user) {
+    public Object save(User user) {
         entityManager.persist(user);
+        return null;
     }
 
     @Override
-    @Transactional(readOnly = true)
     public User show(int id) {
-        return entityManager.find(User.class, id);
+        TypedQuery<User> query = entityManager.createQuery(
+                "select u from User u where u.id = :id", User.class);
+        query.setParameter("id", id);
+        return query.getSingleResult();
     }
 
     @Override
     @Transactional
     public void update(int id, User updateUser) {
+        String[] roleUser = new String[]{"ROLE_USER"};
+
         User user = show(id);
         user.setUsername(updateUser.getUsername());
         user.setSurname(updateUser.getSurname());
         user.setAge(updateUser.getAge());
         user.setEmail(updateUser.getEmail());
-
-        if (updateUser.getPassword() != null && !updateUser.getPassword().isEmpty()) {
-            user.setPassword(updateUser.getPassword());
+        user.setPassword(updateUser.getPassword());
+        if (updateUser.getRoles() == null) {
+            updateUser.setRoles(roleUser);
         }
-
-        if (updateUser.getRoles() != null) {
-            user.setRole(updateUser.getRoles());
-        }
-
+        user.setRole(updateUser.getRoles());
         entityManager.merge(user);
     }
 
@@ -58,28 +60,16 @@ public class UserDaoImpl implements UserDao {
     @Transactional
     public void delete(int id) {
         User user = show(id);
-        if (user != null) {
-            entityManager.remove(user);
-        }
+        entityManager.remove(user);
     }
 
-    @Override
-    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return entityManager.createQuery("select u from User u where u.username = :username", User.class)
-                .setParameter("username", username)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
+                .setParameter("username", username).getSingleResult();
     }
 
-    @Override
-    @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return entityManager.createQuery("select u from User u where u.email = :email", User.class)
-                .setParameter("email", email)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
+                .setParameter("email", email).getSingleResult();
     }
 }
