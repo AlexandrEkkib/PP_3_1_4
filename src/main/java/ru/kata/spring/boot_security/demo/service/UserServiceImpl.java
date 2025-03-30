@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserDao userDao;
@@ -34,34 +33,33 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public void save(User user) {
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         userDao.save(user);
     }
-    @PreAuthorize("hasRole('ADMIN')")
+
+    @Transactional(readOnly = true)
     public User show(int id) {
         return userDao.show(id);
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public void update(int id, User updateUser) {
         updateUser.setPassword(new BCryptPasswordEncoder().encode(updateUser.getPassword()));
         userDao.update(id, updateUser);
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public void delete(int id) {
         userDao.delete(id);
     }
-
+    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return userDao.findByUsername(username);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userDao.findByEmail(email);
         if (user == null) {

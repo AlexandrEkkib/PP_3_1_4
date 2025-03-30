@@ -1,10 +1,11 @@
 package ru.kata.spring.boot_security.demo.dao;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.models.User;
 
 import javax.persistence.*;
-import javax.transaction.Transactional;
+
 import java.util.List;
 
 
@@ -19,6 +20,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return entityManager.createQuery("select u from User u", User.class).getResultList();
     }
@@ -31,6 +33,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User show(int id) {
         TypedQuery<User> query = entityManager.createQuery(
                 "select u from User u where u.id = :id", User.class);
@@ -63,11 +66,13 @@ public class UserDaoImpl implements UserDao {
         entityManager.remove(user);
     }
 
+    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return entityManager.createQuery("select u from User u where u.username = :username", User.class)
                 .setParameter("username", username).getSingleResult();
     }
 
+    @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return entityManager.createQuery("select u from User u where u.email = :email", User.class)
                 .setParameter("email", email).getSingleResult();

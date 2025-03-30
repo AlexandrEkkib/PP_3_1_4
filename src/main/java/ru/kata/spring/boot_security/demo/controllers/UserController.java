@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView print(Principal principal, ModelMap model) {
         User user = userServiceImpl.findByUsername(principal.getName());
         User userEmpty = new User();
